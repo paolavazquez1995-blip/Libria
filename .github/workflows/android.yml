@@ -1,0 +1,59 @@
+name: Crear APK de Libria
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [principal]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Preparar Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Instalar herramientas Android
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Extraer proyecto
+        run: |
+          mkdir -p /tmp/libria
+          python3 - <<'PY'
+          import zipfile, glob, os
+          files = glob.glob("*.zip")
+          if not files:
+              raise SystemExit("No se encontró el ZIP del proyecto")
+          with zipfile.ZipFile(files[0]) as z:
+              z.extractall("/tmp/libria")
+          for _ in range(3):
+              nested = glob.glob("/tmp/libria/**/*.zip", recursive=True)
+              if not nested:
+                  break
+              for f in nested:
+                  with zipfile.ZipFile(f) as z:
+                      z.extractall(os.path.dirname(f))
+                  os.remove(f)
+          PY
+          find /tmp/libria -name settings.gradle.kts
+
+      - name: Compilar APK
+        run: |
+          curl -L https://services.gradle.org/distributions/gradle-8.9-bin.zip -o /tmp/gradle.zip
+          unzip -q /tmp/gradle.zip -d /tmp
+          PROJECT=$(dirname "$(find /tmp/libria -name settings.gradle.kts | head -1)")
+          /tmp/gradle-8.9/bin/gradle -p "$PROJECT" assembleDebug --no-daemon
+
+      - name: Guardar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Libria-APK
+          path: /tmp/libria/**/app/build/outputs/apk/debug/app-debug.apk
