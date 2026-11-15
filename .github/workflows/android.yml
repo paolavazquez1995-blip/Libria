@@ -19,10 +19,9 @@ jobs:
           java-version: '17'
 
       - name: Preparar Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Instalar herramientas Android
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0" "platform-tools"
 
       - name: Extraer proyecto
         run: |
@@ -46,7 +45,7 @@ jobs:
           PROJECT_FILE=$(find /tmp/libria -name settings.gradle.kts -print -quit)
           if [ -z "$PROJECT_FILE" ]; then
             echo "No se encontró settings.gradle.kts dentro del ZIP"
-            find /tmp/libria -maxdepth 4 -type f
+            find /tmp/libria -maxdepth 5 -type f
             exit 1
           fi
           echo "Proyecto encontrado: $PROJECT_FILE"
