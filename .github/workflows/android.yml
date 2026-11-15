@@ -3,7 +3,7 @@ name: Crear APK de Libria
 on:
   workflow_dispatch:
   push:
-    branches: [principal]
+    branches: [main]
 
 jobs:
   build:
@@ -43,13 +43,19 @@ jobs:
                       z.extractall(os.path.dirname(f))
                   os.remove(f)
           PY
-          find /tmp/libria -name settings.gradle.kts
+          PROJECT_FILE=$(find /tmp/libria -name settings.gradle.kts -print -quit)
+          if [ -z "$PROJECT_FILE" ]; then
+            echo "No se encontró settings.gradle.kts dentro del ZIP"
+            find /tmp/libria -maxdepth 4 -type f
+            exit 1
+          fi
+          echo "Proyecto encontrado: $PROJECT_FILE"
 
       - name: Compilar APK
         run: |
           curl -L https://services.gradle.org/distributions/gradle-8.9-bin.zip -o /tmp/gradle.zip
           unzip -q /tmp/gradle.zip -d /tmp
-          PROJECT=$(dirname "$(find /tmp/libria -name settings.gradle.kts | head -1)")
+          PROJECT=$(dirname "$(find /tmp/libria -name settings.gradle.kts -print -quit)")
           /tmp/gradle-8.9/bin/gradle -p "$PROJECT" assembleDebug --no-daemon
 
       - name: Guardar APK
@@ -57,3 +63,4 @@ jobs:
         with:
           name: Libria-APK
           path: /tmp/libria/**/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
