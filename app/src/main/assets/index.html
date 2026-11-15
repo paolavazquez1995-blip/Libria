@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Libria</title><style>
+:root{--bg:#fff8fc;--ink:#49364b;--card:#fff;--accent:#b78acb}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px system-ui}
+header{padding:24px 20px;background:linear-gradient(135deg,#f5dff3,#e8def9);border-radius:0 0 28px 28px}
+h1{margin:0;font-size:30px}small{opacity:.7}.wrap{padding:18px}.panel{background:var(--card);padding:18px;border-radius:20px;box-shadow:0 4px 18px #68476b18;margin:14px 0}
+button,.pick{background:var(--accent);color:white;border:0;border-radius:14px;padding:12px 16px;font-weight:600;display:inline-block}
+input{max-width:100%}#reader{white-space:pre-wrap;line-height:1.8;font-family:Georgia,serif;font-size:19px;min-height:45vh}
+.themes{display:flex;gap:8px;flex-wrap:wrap}.muted{opacity:.65}
+</style></head><body>
+<header><h1>🐈 Libria</h1><small>Tu rincón de lectura</small></header>
+<div class="wrap"><section class="panel"><h2>Mi biblioteca</h2><p class="muted">Abre libros desde tu dispositivo o desde Drive si está disponible en el selector.</p>
+<label class="pick">＋ Añadir libro <input id="file" type="file" accept=".txt,.md,.epub,.pdf" hidden></label>
+<div id="booklist"></div></section>
+<section class="panel"><div class="themes"><button onclick="theme('pink')">🐈 Rosa</button><button onclick="theme('lilac')">💜 Lila</button><button onclick="theme('night')">🌙 Noche</button><button onclick="theme('cream')">🤎 Crema</button></div>
+<p><button onclick="changeSize(-1)">A−</button> <button onclick="changeSize(1)">A＋</button> <button onclick="bookmark()">♡ Marcador</button></p>
+<div id="reader">¡Hola! Elige un libro para comenzar a leer. 📖</div></section></div>
+<script>
+let size=19;const reader=document.getElementById('reader');function changeSize(n){size=Math.max(14,Math.min(32,size+n));reader.style.fontSize=size+'px'}
+function theme(t){let r=document.documentElement;if(t==='night'){r.style.setProperty('--bg','#211d2a');r.style.setProperty('--ink','#f5eefa');r.style.setProperty('--card','#302a3a')}else{r.style.setProperty('--bg',t==='cream'?'#f5eddf':t==='pink'?'#fff0f6':'#fbf5ff');r.style.setProperty('--ink','#49364b');r.style.setProperty('--card','#fff')}}
+function bookmark(){localStorage.setItem('libria-bookmark',reader.scrollTop);alert('Marcador guardado')}
+document.getElementById('file').addEventListener('change',async e=>{let f=e.target.files[0];if(!f)return;let text=await f.text();if(f.name.toLowerCase().endsWith('.pdf')){reader.textContent='La lectura de PDF requiere el módulo PDF.js; por ahora puedes abrir TXT o Markdown.'}else if(f.name.toLowerCase().endsWith('.epub')){reader.textContent='El archivo EPUB se cargó, pero el lector EPUB completo se incorporará en la siguiente versión.'}else{reader.textContent=text}document.getElementById('booklist').textContent='📘 '+f.name;});
+</script></body></html>
